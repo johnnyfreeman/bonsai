@@ -1,0 +1,72 @@
+{
+  "name": "JSON Explorer",
+  "version": "1.0.0",
+  "features": [
+    "hjkl navigation",
+    "expand/collapse",
+    "syntax highlighting",
+    "filtering"
+  ],
+  "config": {
+    "theme": "dark",
+    "keybindings": {
+      "navigation": {
+        "up": "k",
+        "down": "j",
+        "left": "h",
+        "right": "l"
+      },
+      "actions": {
+        "expand": "enter",
+        "collapse": "h",
+        "filter": "/",
+        "quit": "q"
+      }
+    },
+    "display": {
+      "indent": 2,
+      "showLineNumbers": false,
+      "maxDepth": null
+    }
+  },
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "John Doe",
+        "email": "john@example.com",
+        "active": true,
+        "profile": {
+          "age": 30,
+          "location": "New York",
+          "preferences": {
+            "theme": "dark",
+            "notifications": true,
+            "language": "en"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Jane Smith",
+        "email": "jane@example.com",
+        "active": false,
+        "profile": {
+          "age": 25,
+          "location": "San Francisco",
+          "preferences": {
+            "theme": "light",
+            "notifications": false,
+            "language": "es"
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "total": 2,
+      "lastUpdated": "2025-01-06T10:30:00Z",
+      "source": "api.example.com",
+      "compression": null
+    }
+  }
+}
