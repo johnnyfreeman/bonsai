@@ -28,7 +28,14 @@ go get github.com/johnnyfreeman/bonsai/viewer
 ## CLI Usage
 
 ```bash
+# From file
 bonsai example.json
+
+# From stdin (pipe JSON data)
+cat example.json | bonsai
+curl -s api.example.com/data.json | bonsai
+echo '{"key": "value"}' | bonsai
+jq '.data' input.json | bonsai
 ```
 
 ### Controls

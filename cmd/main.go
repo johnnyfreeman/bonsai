@@ -12,39 +12,62 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: bonsai <file.json>")
-		fmt.Println("\nBonsai - A terminal-based JSON viewer with vim-like navigation.")
-		fmt.Println("\nFeatures:")
-		fmt.Println("  • hjkl navigation")
-		fmt.Println("  • Expand/collapse nodes")
-		fmt.Println("  • Text and JSONPath filtering")
-		fmt.Println("  • Search functionality")
-		fmt.Println("  • Copy to clipboard")
-		fmt.Println("  • Multiple themes")
-		fmt.Println("\nPress ? for help when running")
-		os.Exit(1)
-	}
+	var data []byte
+	var filename string
+	var fileSize int64
+	var err error
 
-	filename := os.Args[1]
+	// Check if we have stdin data or a file argument
+	stat, _ := os.Stdin.Stat()
+	hasStdin := (stat.Mode() & os.ModeCharDevice) == 0
 
-	// Read the file
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-	}
-	defer file.Close()
+	if hasStdin {
+		// Read from stdin
+		data, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("Error reading from stdin: %v", err)
+		}
+		filename = "<stdin>"
+		fileSize = int64(len(data))
+	} else {
+		// Check for file argument
+		if len(os.Args) < 2 {
+			fmt.Println("Usage: bonsai <file.json>")
+			fmt.Println("   or: cat file.json | bonsai")
+			fmt.Println("   or: curl -s api.example.com/data.json | bonsai")
+			fmt.Println("\nBonsai - A terminal-based JSON viewer with vim-like navigation.")
+			fmt.Println("\nFeatures:")
+			fmt.Println("  • hjkl navigation")
+			fmt.Println("  • Expand/collapse nodes")
+			fmt.Println("  • Text and JSONPath filtering")
+			fmt.Println("  • Search functionality")
+			fmt.Println("  • Copy to clipboard")
+			fmt.Println("  • Multiple themes")
+			fmt.Println("\nPress ? for help when running")
+			os.Exit(1)
+		}
 
-	// Get file info for display
-	fileInfo, err := file.Stat()
-	if err != nil {
-		log.Fatalf("Error getting file info: %v", err)
-	}
+		filename = os.Args[1]
 
-	// Read file content
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Fatalf("Error reading file: %v", err)
+		// Read the file
+		file, err := os.Open(filename)
+		if err != nil {
+			log.Fatalf("Error opening file: %v", err)
+		}
+		defer file.Close()
+
+		// Get file info for display
+		fileInfo, err := file.Stat()
+		if err != nil {
+			log.Fatalf("Error getting file info: %v", err)
+		}
+		fileSize = fileInfo.Size()
+
+		// Read file content
+		data, err = io.ReadAll(file)
+		if err != nil {
+			log.Fatalf("Error reading file: %v", err)
+		}
 	}
 
 	// Create the viewer model with CLI-specific configuration
@@ -63,7 +86,11 @@ func main() {
 	}
 
 	// Add file information
-	model = model.WithFilename(filepath.Base(filename), fileInfo.Size())
+	if filename == "<stdin>" {
+		model = model.WithFilename(filename, fileSize)
+	} else {
+		model = model.WithFilename(filepath.Base(filename), fileSize)
+	}
 
 	// Run the program
 	p := tea.NewProgram(model, tea.WithAltScreen())
