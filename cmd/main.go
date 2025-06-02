@@ -27,7 +27,7 @@ func main() {
 	}
 
 	filename := os.Args[1]
-	
+
 	// Read the file
 	file, err := os.Open(filename)
 	if err != nil {
@@ -48,8 +48,9 @@ func main() {
 	}
 
 	// Create the viewer model with CLI-specific configuration
-	config := viewer.DefaultConfig()
-	
+	config := viewer.DefaultConfig().
+		WithTheme(viewer.TokyoNightTheme())
+
 	// Set up error handling
 	config.OnError = func(err error) {
 		log.Printf("Bonsai Error: %v", err)

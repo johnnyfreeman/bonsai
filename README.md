@@ -133,9 +133,17 @@ type MyApp struct {
 
 ```go
 // Built-in themes
-viewer.DefaultTheme()  // Dark theme
-viewer.LightTheme()    // Light theme  
-viewer.MonochromeTheme() // Black and white
+viewer.DefaultTheme()         // Dark theme
+viewer.LightTheme()          // Light theme  
+viewer.MonochromeTheme()     // Black and white
+
+// Popular community themes
+viewer.TokyoNightTheme()     // Popular VS Code theme
+viewer.CatppuccinMochaTheme() // Catppuccin dark variant
+viewer.CatppuccinLatteTheme() // Catppuccin light variant
+viewer.DraculaTheme()        // Classic dark theme
+viewer.NordTheme()           // Arctic/minimal theme
+viewer.GruvboxTheme()        // Retro warm theme
 
 // Or create your own
 customTheme := viewer.Theme{
