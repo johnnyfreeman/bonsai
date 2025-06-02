@@ -239,7 +239,9 @@ Check out the [examples/](examples/) directory for complete examples:
 
 ## JSONPath Examples
 
-Press `$` to enter JSONPath mode:
+Press `$` to enter JSONPath mode with smart path suggestions:
+
+**Smart Path Suggestions:** When you press `$`, the viewer intelligently suggests a JSONPath based on your current cursor position. For example, if you're on `$.users[0].name`, it will start with `$.users[*].name` to show all user names.
 
 - `$.users[*].name` - Get all user names
 - `$.config.database` - Get database config

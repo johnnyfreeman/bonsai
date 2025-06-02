@@ -135,6 +135,9 @@ type Model struct {
 	searchMatches []*Node
 	searchIndex   int
 	
+	// Position restoration
+	savedNodePath string
+	
 	// Embedded mode
 	embedded      bool
 	width         int

@@ -3,6 +3,7 @@ package viewer
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -139,10 +140,42 @@ func (m *Model) enterFilterMode() {
 }
 
 func (m *Model) enterJSONPathMode() {
+	// Save current node path for restoration on escape
+	if m.cursor >= 0 && m.cursor < len(m.viewNodes) {
+		m.savedNodePath = m.viewNodes[m.cursor].Path
+	} else {
+		m.savedNodePath = "$"
+	}
+	
 	m.jsonpathMode = true
-	m.filter = "$"
+	m.filter = m.getSmartJSONPathStart()
 	// Apply the initial filter to show the live filtering immediately
 	m.applyLiveJSONPathFilter()
+}
+
+// getSmartJSONPathStart returns an intelligent starting JSONPath based on current position
+func (m *Model) getSmartJSONPathStart() string {
+	// If no current node, start with root
+	if m.cursor < 0 || m.cursor >= len(m.viewNodes) {
+		return "$"
+	}
+	
+	currentNode := m.viewNodes[m.cursor]
+	if currentNode == nil || currentNode.Path == "" || currentNode.Path == "$" {
+		return "$"
+	}
+	
+	// Convert array indices to wildcards for broader selection
+	// e.g., $.data.users[0].name becomes $.data.users[*].name
+	wildcardPath := m.pathToWildcard(currentNode.Path)
+	return wildcardPath
+}
+
+// pathToWildcard converts array indices in a path to wildcards
+func (m *Model) pathToWildcard(path string) string {
+	// Replace [number] with [*] using regex
+	re := regexp.MustCompile(`\[\d+\]`)
+	return re.ReplaceAllString(path, "[*]")
 }
 
 func (m *Model) enterSearchMode() {
@@ -215,12 +248,38 @@ func (m *Model) applyInput() {
 }
 
 func (m *Model) cancelInput() {
+	wasJSONPathMode := m.jsonpathMode
+	
 	m.filterMode = false
 	m.jsonpathMode = false
 	m.searchMode = false
 	m.gotoMode = false
 	m.filter = ""
-	m.updateViewNodes()
+	
+	// If we were in JSONPath mode, restore the original position
+	if wasJSONPathMode && m.savedNodePath != "" {
+		// Restore original view state
+		m.root = BuildTree(m.rawData, "", "$")
+		
+		// Expand all nodes to ensure the saved path is visible
+		m.root.ExpandAll()
+		m.updateViewNodes()
+		
+		// Find the node with the saved path and restore cursor to it
+		m.cursor = 0 // Default fallback
+		for i, node := range m.viewNodes {
+			if node.Path == m.savedNodePath {
+				m.cursor = i
+				break
+			}
+		}
+		
+		// Clear saved state
+		m.savedNodePath = ""
+	} else {
+		m.updateViewNodes()
+	}
+	
 	m.updateViewport()
 }
 
