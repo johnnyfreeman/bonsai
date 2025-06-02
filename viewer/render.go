@@ -14,9 +14,11 @@ func (m *Model) updateViewNodes() {
 
 	if m.filter != "" && !m.jsonpathMode {
 		filtered := make([]*Node, 0)
+		filterLower := strings.ToLower(m.filter)
 		for _, node := range m.viewNodes {
-			if strings.Contains(strings.ToLower(node.Path), strings.ToLower(m.filter)) ||
-				strings.Contains(strings.ToLower(node.Key), strings.ToLower(m.filter)) {
+			if strings.Contains(strings.ToLower(node.Path), filterLower) ||
+				strings.Contains(strings.ToLower(node.Key), filterLower) ||
+				(node.Value != nil && strings.Contains(strings.ToLower(fmt.Sprintf("%v", node.Value)), filterLower)) {
 				filtered = append(filtered, node)
 			}
 		}

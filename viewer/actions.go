@@ -140,7 +140,9 @@ func (m *Model) enterFilterMode() {
 
 func (m *Model) enterJSONPathMode() {
 	m.jsonpathMode = true
-	m.filter = ""
+	m.filter = "$"
+	// Apply the initial filter to show the live filtering immediately
+	m.applyLiveJSONPathFilter()
 }
 
 func (m *Model) enterSearchMode() {
@@ -165,15 +167,29 @@ func (m Model) handleInputMode(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, key.NewBinding(key.WithKeys("backspace"))):
 		if len(m.filter) > 0 {
 			m.filter = m.filter[:len(m.filter)-1]
+			// Apply live filtering for text filter mode
+			if m.filterMode {
+				m.applyLiveFilter()
+			} else if m.jsonpathMode {
+				m.applyLiveJSONPathFilter()
+			}
 		}
 		return m, nil
 	default:
 		m.filter += msg.String()
+		// Apply live filtering for text filter mode
+		if m.filterMode {
+			m.applyLiveFilter()
+		} else if m.jsonpathMode {
+			m.applyLiveJSONPathFilter()
+		}
 		return m, nil
 	}
 }
 
 func (m *Model) applyInput() {
+	wasJSONPathMode := m.jsonpathMode
+	
 	if m.jsonpathMode {
 		m.applyJSONPathFilter()
 	} else if m.searchMode {
@@ -191,8 +207,11 @@ func (m *Model) applyInput() {
 		m.config.OnFilter(m.filter)
 	}
 	
-	m.updateViewNodes()
-	m.updateViewport()
+	// Only update view nodes if it wasn't JSONPath mode (JSONPath already updates the tree structure)
+	if !wasJSONPathMode {
+		m.updateViewNodes()
+		m.updateViewport()
+	}
 }
 
 func (m *Model) cancelInput() {
@@ -203,6 +222,67 @@ func (m *Model) cancelInput() {
 	m.filter = ""
 	m.updateViewNodes()
 	m.updateViewport()
+}
+
+// applyLiveFilter applies text filtering as the user types
+func (m *Model) applyLiveFilter() {
+	// Save current cursor position to try to preserve it
+	var currentNode *Node
+	if m.cursor >= 0 && m.cursor < len(m.viewNodes) {
+		currentNode = m.viewNodes[m.cursor]
+	}
+	
+	// Update view nodes with current filter
+	m.updateViewNodes()
+	
+	// Try to preserve cursor position by finding the same node
+	if currentNode != nil {
+		for i, node := range m.viewNodes {
+			if node == currentNode {
+				m.cursor = i
+				break
+			}
+		}
+		// If node not found, keep cursor at 0 or adjust to valid range
+		if m.cursor >= len(m.viewNodes) {
+			m.cursor = max(0, len(m.viewNodes)-1)
+		}
+	}
+	
+	m.updateViewport()
+}
+
+// applyLiveJSONPathFilter applies JSONPath filtering as the user types
+func (m *Model) applyLiveJSONPathFilter() {
+	// Don't apply empty filters
+	if m.filter == "" {
+		// Reset to original data when filter is empty
+		m.root = BuildTree(m.rawData, "", "$")
+		if m.config.InitiallyExpanded {
+			m.root.Expanded = true
+		}
+		m.cursor = 0
+		m.updateViewNodes()
+		m.updateViewport()
+		return
+	}
+
+	// Try to apply JSONPath filter, but don't show errors during live typing
+	// Only apply if it's a potentially valid JSONPath (starts with $ or has some basic structure)
+	if strings.HasPrefix(m.filter, "$") || strings.Contains(m.filter, ".") {
+		result, err := jsonpath.Get(m.filter, m.rawData)
+		if err == nil {
+			m.root = BuildTree(result, "", "$")
+			m.root.Expanded = true
+			
+			// Reset cursor to top since structure changed significantly
+			m.cursor = 0
+			
+			m.updateViewNodes()
+			m.updateViewport()
+		}
+		// Silently ignore errors during live typing - they'll be shown on Enter
+	}
 }
 
 // Filtering and search
