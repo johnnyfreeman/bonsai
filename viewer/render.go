@@ -184,7 +184,7 @@ func (m Model) renderHeader() string {
 		headerLine2 = breadcrumb
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, headerLine1, headerLine2, "")
+	return lipgloss.JoinVertical(lipgloss.Left, headerLine1, headerLine2)
 }
 
 // renderFooter renders the footer section (only in non-embedded mode)
@@ -198,17 +198,17 @@ func (m Model) renderFooter() string {
 	}
 
 	if m.filterMode {
-		return "\n" + m.config.Theme.Filter.Render("Press Enter to apply filter, Esc to cancel")
+		return m.config.Theme.Filter.Render("Press Enter to apply filter, Esc to cancel")
 	} else if m.jsonpathMode {
-		return "\n" + m.config.Theme.JSONPath.Render("Press Enter to apply JSONPath, Esc to cancel")
+		return m.config.Theme.JSONPath.Render("Press Enter to apply JSONPath, Esc to cancel")
 	} else if m.searchMode {
-		return "\n" + m.config.Theme.Search.Render("Press Enter to search, Esc to cancel")
+		return m.config.Theme.Search.Render("Press Enter to search, Esc to cancel")
 	} else if m.gotoMode {
-		return "\n" + m.config.Theme.Goto.Render("Press Enter to goto path, Esc to cancel")
+		return m.config.Theme.Goto.Render("Press Enter to goto path, Esc to cancel")
 	}
 
 	helpText := m.config.Theme.Status.Render("Press ? for help")
-	return "\n" + helpText
+	return helpText
 }
 
 // renderManualHelp renders the help overlay
@@ -217,34 +217,33 @@ func (m Model) renderManualHelp() string {
 	titleStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("39")).Bold(true)
 
 	help := strings.Builder{}
-	help.WriteString("\n")
-	help.WriteString(titleStyle.Render("━━━ Bonsai Help ━━━") + "\n\n")
+	help.WriteString(titleStyle.Render("━━━ Bonsai Help ━━━") + "\n")
 
 	help.WriteString(helpStyle.Render("Navigation:") + "\n")
 	help.WriteString("  ↑/k, ↓/j, ←/h, →/l     Navigate tree\n")
 	help.WriteString("  PgUp/Ctrl+U, PgDn/Ctrl+D   Page up/down\n")
-	help.WriteString("  Home/g, End/G           Go to top/bottom\n\n")
+	help.WriteString("  Home/g, End/G           Go to top/bottom\n")
 
 	help.WriteString(helpStyle.Render("Tree Operations:") + "\n")
 	help.WriteString("  Enter/Space/l           Expand/collapse node\n")
 	help.WriteString("  h                       Collapse or go to parent\n")
-	help.WriteString("  E, C                    Expand/collapse all\n\n")
+	help.WriteString("  E, C                    Expand/collapse all\n")
 
 	help.WriteString(helpStyle.Render("Search & Filter:") + "\n")
 	help.WriteString("  /                       Text filter\n")
 	help.WriteString("  $                       JSONPath query\n")
 	help.WriteString("  s/Ctrl+F                Search content\n")
 	help.WriteString("  :/Ctrl+G                Goto path\n")
-	help.WriteString("  n, N                    Next/prev match\n\n")
+	help.WriteString("  n, N                    Next/prev match\n")
 
 	if m.config.EnableClipboard {
 		help.WriteString(helpStyle.Render("Clipboard:") + "\n")
-		help.WriteString("  c, p, y                 Copy value/path/key\n\n")
+		help.WriteString("  c, p, y                 Copy value/path/key\n")
 	}
 
 	help.WriteString(helpStyle.Render("Utility:") + "\n")
 	help.WriteString("  r/Ctrl+R                Reset view\n")
-	help.WriteString("  ?, q/Esc                Help, Quit\n\n")
+	help.WriteString("  ?, q/Esc                Help, Quit\n")
 
 	help.WriteString(titleStyle.Render("Press ? to close help"))
 

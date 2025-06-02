@@ -117,10 +117,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		if !m.embedded {
-			headerHeight := 3
-			footerHeight := 4
+			headerHeight := 2  // Title+stats line, filter/breadcrumb line (removed empty line)
+			footerHeight := 1  // Just the help text (removed extra padding)
 			if m.showHelp {
-				footerHeight = 15
+				footerHeight = 13  // Reduced from 15 to actual content size
 			}
 			verticalMarginHeight := headerHeight + footerHeight
 
